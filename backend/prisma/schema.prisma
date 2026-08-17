@@ -1,0 +1,499 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  ADMIN
+  TRAINER
+  STUDENT
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  CANCELLED
+  OVERDUE
+}
+
+enum PaymentStatus {
+  PAID
+  PENDING
+  OVERDUE
+  CANCELLED
+}
+
+enum PaymentMethod {
+  PIX
+  CREDIT_CARD
+  DEBIT_CARD
+  BANK_TRANSFER
+  CASH
+  MERCADO_PAGO
+  STRIPE
+}
+
+enum CheckInMethod {
+  QR_CODE
+  STUDENT_CODE
+  APP
+  MANUAL
+}
+
+enum AppointmentType {
+  PHYSICAL_ASSESSMENT
+  PERSONAL_TRAINING
+  CONSULTATION
+  GROUP_CLASS
+}
+
+enum NotificationType {
+  WORKOUT_REMINDER
+  PAYMENT_DUE
+  ASSESSMENT_SCHEDULED
+  WORKOUT_COMPLETED
+  ACHIEVEMENT_UNLOCKED
+  GENERAL
+  CLASS_REMINDER
+}
+
+enum AchievementCategory {
+  WORKOUT
+  FREQUENCY
+  STREAK
+  ASSESSMENT
+  MILESTONE
+  SPECIAL
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  OTHER
+}
+
+// ─── USERS & AUTH ──────────────────────────────────────
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  password      String
+  role          UserRole  @default(STUDENT)
+  isActive      Boolean   @default(true)
+  lastLoginAt   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  student       Student?
+  trainer       Trainer?
+  unitAccess    UnitAdmin[]
+  notifications Notification[]
+  refreshTokens RefreshToken[]
+}
+
+model RefreshToken {
+  id        String   @id @default(uuid())
+  token     String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([token])
+}
+
+// ─── UNITS ─────────────────────────────────────────────
+
+model Unit {
+  id        String   @id @default(uuid())
+  name      String
+  address   String?
+  phone     String?
+  email     String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  subscriptions Subscription[]
+  students      Student[]
+  trainers      Trainer[]
+  checkins      CheckIn[]
+  appointments  Appointment[]
+  admins        UnitAdmin[]
+  plans         Plan[]
+}
+
+model UnitAdmin {
+  id      String @id @default(uuid())
+  userId  String
+  user    User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  unitId  String
+  unit    Unit   @relation(fields: [unitId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, unitId])
+}
+
+// ─── PLANS & SUBSCRIPTIONS ─────────────────────────────
+
+model Plan {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  price       Decimal  @db.Decimal(10, 2)
+  duration    Int
+  features    String[]
+  isActive    Boolean  @default(true)
+  unitId      String?
+  unit        Unit?    @relation(fields: [unitId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  subscriptions Subscription[]
+}
+
+model Subscription {
+  id        String             @id @default(uuid())
+  studentId String
+  student   Student            @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  planId    String
+  plan      Plan               @relation(fields: [planId], references: [id])
+  unitId    String
+  unit      Unit               @relation(fields: [unitId], references: [id])
+  status    SubscriptionStatus @default(ACTIVE)
+  startDate DateTime           @default(now())
+  endDate   DateTime?
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  payments Payment[]
+
+  @@index([studentId])
+  @@index([status])
+}
+
+// ─── STUDENTS ──────────────────────────────────────────
+
+model Student {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  unitId          String?
+  unit            Unit?    @relation(fields: [unitId], references: [id])
+  trainerId       String?
+  trainer         Trainer? @relation(fields: [trainerId], references: [id])
+  fullName        String
+  cpf             String?  @unique
+  phone           String?
+  birthDate       DateTime?
+  gender          Gender?
+  avatarUrl       String?
+  weight          Decimal? @db.Decimal(5, 2)
+  height          Decimal? @db.Decimal(5, 2)
+  bodyFatPercent  Decimal? @db.Decimal(5, 2)
+  muscleMass      Decimal? @db.Decimal(5, 2)
+  goal            String?
+  points          Int      @default(0)
+  level           String   @default("INICIANTE")
+  qrCode          String?  @unique
+  studentCode     String?  @unique
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  checkins          CheckIn[]
+  workouts          WorkoutAssignment[]
+  evaluations       Evaluation[]
+  progressPhotos    ProgressPhoto[]
+  appointments      Appointment[]
+  subscriptions     Subscription[]
+  achievements      StudentAchievement[]
+  ranking           Ranking?
+}
+
+// ─── TRAINERS ──────────────────────────────────────────
+
+model Trainer {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  unitId      String?
+  unit        Unit?    @relation(fields: [unitId], references: [id])
+  fullName    String
+  cpf         String?  @unique
+  cref        String?
+  specialty   String?
+  phone       String?
+  bio         String?
+  avatarUrl   String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  students    Student[]
+  workouts    Workout[]
+  evaluations Evaluation[]
+}
+
+// ─── WORKOUTS ──────────────────────────────────────────
+
+model Workout {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  trainerId   String?
+  trainer     Trainer? @relation(fields: [trainerId], references: [id])
+  dayOfWeek   Int?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  exercises   WorkoutExercise[]
+  assignments WorkoutAssignment[]
+
+  @@index([trainerId])
+}
+
+model Exercise {
+  id              String   @id @default(uuid())
+  name            String
+  muscleGroup     String
+  description     String?
+  imageUrl        String?
+  videoUrl        String?
+  equipment       String?
+  difficulty      Int      @default(1)
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  workoutExercises WorkoutExercise[]
+}
+
+model WorkoutExercise {
+  id           String   @id @default(uuid())
+  workoutId    String
+  workout      Workout  @relation(fields: [workoutId], references: [id], onDelete: Cascade)
+  exerciseId   String
+  exercise     Exercise @relation(fields: [exerciseId], references: [id])
+  order        Int
+  sets         Int      @default(3)
+  reps         String
+  restSeconds  Int      @default(90)
+  weight       Decimal? @db.Decimal(6, 2)
+  notes        String?
+  createdAt    DateTime @default(now())
+
+  completions  ExerciseCompletion[]
+
+  @@unique([workoutId, exerciseId, order])
+}
+
+model WorkoutAssignment {
+  id        String   @id @default(uuid())
+  studentId String
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  workoutId String
+  workout   Workout  @relation(fields: [workoutId], references: [id])
+  startDate DateTime @default(now())
+  endDate   DateTime?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  sessions WorkoutSession[]
+
+  @@unique([studentId, workoutId])
+}
+
+model WorkoutSession {
+  id           String   @id @default(uuid())
+  assignmentId String
+  assignment   WorkoutAssignment @relation(fields: [assignmentId], references: [id], onDelete: Cascade)
+  date         DateTime @default(now())
+  duration     Int?
+  completed    Boolean  @default(false)
+  calories     Int?
+  notes        String?
+  createdAt    DateTime @default(now())
+
+  completions ExerciseCompletion[]
+}
+
+model ExerciseCompletion {
+  id         String         @id @default(uuid())
+  sessionId  String
+  session    WorkoutSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  exerciseId String
+  exercise   WorkoutExercise @relation(fields: [exerciseId], references: [id])
+  completed  Boolean        @default(false)
+  setsDone   Int?
+  repsDone   String?
+  weightUsed Decimal?       @db.Decimal(6, 2)
+  notes      String?
+  createdAt  DateTime       @default(now())
+}
+
+// ─── EVALUATIONS & BODY MEASUREMENTS ───────────────────
+
+model Evaluation {
+  id              String   @id @default(uuid())
+  studentId       String
+  student         Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  trainerId       String?
+  trainer         Trainer? @relation(fields: [trainerId], references: [id])
+  date            DateTime @default(now())
+  weight          Decimal? @db.Decimal(5, 2)
+  height          Decimal? @db.Decimal(5, 2)
+  bodyFatPercent  Decimal? @db.Decimal(5, 2)
+  muscleMass      Decimal? @db.Decimal(5, 2)
+  visceralFat     Decimal? @db.Decimal(5, 2)
+  basalMetabolism Int?
+  bmi             Decimal? @db.Decimal(5, 2)
+  observations    String?
+  createdAt       DateTime @default(now())
+
+  measurements BodyMeasurement[]
+}
+
+model BodyMeasurement {
+  id           String     @id @default(uuid())
+  evaluationId String
+  evaluation   Evaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  arm          Decimal?   @db.Decimal(5, 2)
+  chest        Decimal?   @db.Decimal(5, 2)
+  waist        Decimal?   @db.Decimal(5, 2)
+  hip          Decimal?   @db.Decimal(5, 2)
+  thigh        Decimal?   @db.Decimal(5, 2)
+  calf         Decimal?   @db.Decimal(5, 2)
+  createdAt    DateTime   @default(now())
+}
+
+model ProgressPhoto {
+  id        String   @id @default(uuid())
+  studentId String
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  url       String
+  type      String
+  date      DateTime @default(now())
+  notes     String?
+  createdAt DateTime @default(now())
+}
+
+// ─── CHECK-IN ──────────────────────────────────────────
+
+model CheckIn {
+  id        String        @id @default(uuid())
+  studentId String
+  student   Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  unitId    String
+  unit      Unit          @relation(fields: [unitId], references: [id])
+  date      DateTime      @default(now())
+  method    CheckInMethod @default(APP)
+  createdAt DateTime      @default(now())
+
+  @@index([studentId, date])
+  @@index([unitId, date])
+}
+
+// ─── APPOINTMENTS ──────────────────────────────────────
+
+model Appointment {
+  id        String          @id @default(uuid())
+  studentId String
+  student   Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  unitId    String
+  unit      Unit            @relation(fields: [unitId], references: [id])
+  title     String
+  type      AppointmentType @default(PERSONAL_TRAINING)
+  date      DateTime
+  duration  Int             @default(60)
+  status    String          @default("SCHEDULED")
+  notes     String?
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@index([studentId, date])
+}
+
+// ─── PAYMENTS ──────────────────────────────────────────
+
+model Payment {
+  id             String        @id @default(uuid())
+  subscriptionId String
+  subscription   Subscription  @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  amount         Decimal       @db.Decimal(10, 2)
+  status         PaymentStatus @default(PENDING)
+  method         PaymentMethod?
+  dueDate        DateTime
+  paidDate       DateTime?
+  transactionId  String?
+  notes          String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@index([status])
+  @@index([dueDate])
+}
+
+// ─── NOTIFICATIONS ─────────────────────────────────────
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      NotificationType @default(GENERAL)
+  isRead    Boolean          @default(false)
+  data      Json?
+  createdAt DateTime         @default(now())
+
+  @@index([userId, isRead])
+}
+
+// ─── ACHIEVEMENTS & RANKING ────────────────────────────
+
+model Achievement {
+  id          String              @id @default(uuid())
+  name        String
+  description String
+  icon        String
+  category    AchievementCategory @default(WORKOUT)
+  points      Int                 @default(10)
+  requirement Int?
+  isActive    Boolean             @default(true)
+  createdAt   DateTime            @default(now())
+
+  studentAchievements StudentAchievement[]
+}
+
+model StudentAchievement {
+  id            String      @id @default(uuid())
+  studentId     String
+  student       Student     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  achievementId String
+  achievement   Achievement @relation(fields: [achievementId], references: [id])
+  unlockedAt    DateTime    @default(now())
+
+  @@unique([studentId, achievementId])
+}
+
+model Ranking {
+  id           String   @id @default(uuid())
+  studentId    String   @unique
+  student      Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  totalPoints  Int      @default(0)
+  currentLevel String   @default("INICIANTE")
+  month        Int
+  year         Int
+  position     Int?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([studentId, month, year])
+  @@index([year, month, position])
+}
