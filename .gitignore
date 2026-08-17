@@ -6,5 +6,7 @@ dist/
 .DS_Store
 web/.vite/
 backend/dist/
+backend/prisma/dev.db
+backend/prisma/dev.db-journal
 *.tsbuildinfo
 coverage/

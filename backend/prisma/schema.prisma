@@ -3,78 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
-}
-
-enum UserRole {
-  ADMIN
-  TRAINER
-  STUDENT
-}
-
-enum SubscriptionStatus {
-  ACTIVE
-  INACTIVE
-  SUSPENDED
-  CANCELLED
-  OVERDUE
-}
-
-enum PaymentStatus {
-  PAID
-  PENDING
-  OVERDUE
-  CANCELLED
-}
-
-enum PaymentMethod {
-  PIX
-  CREDIT_CARD
-  DEBIT_CARD
-  BANK_TRANSFER
-  CASH
-  MERCADO_PAGO
-  STRIPE
-}
-
-enum CheckInMethod {
-  QR_CODE
-  STUDENT_CODE
-  APP
-  MANUAL
-}
-
-enum AppointmentType {
-  PHYSICAL_ASSESSMENT
-  PERSONAL_TRAINING
-  CONSULTATION
-  GROUP_CLASS
-}
-
-enum NotificationType {
-  WORKOUT_REMINDER
-  PAYMENT_DUE
-  ASSESSMENT_SCHEDULED
-  WORKOUT_COMPLETED
-  ACHIEVEMENT_UNLOCKED
-  GENERAL
-  CLASS_REMINDER
-}
-
-enum AchievementCategory {
-  WORKOUT
-  FREQUENCY
-  STREAK
-  ASSESSMENT
-  MILESTONE
-  SPECIAL
-}
-
-enum Gender {
-  MALE
-  FEMALE
-  OTHER
 }
 
 // ─── USERS & AUTH ──────────────────────────────────────
@@ -83,7 +13,7 @@ model User {
   id            String    @id @default(uuid())
   email         String    @unique
   password      String
-  role          UserRole  @default(STUDENT)
+  role          String    @default("STUDENT")
   isActive      Boolean   @default(true)
   lastLoginAt   DateTime?
   createdAt     DateTime  @default(now())
@@ -145,9 +75,9 @@ model Plan {
   id          String   @id @default(uuid())
   name        String
   description String?
-  price       Decimal  @db.Decimal(10, 2)
+  price       Float
   duration    Int
-  features    String[]
+  features    String   @default("[]")
   isActive    Boolean  @default(true)
   unitId      String?
   unit        Unit?    @relation(fields: [unitId], references: [id])
@@ -158,18 +88,18 @@ model Plan {
 }
 
 model Subscription {
-  id        String             @id @default(uuid())
+  id        String   @id @default(uuid())
   studentId String
-  student   Student            @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
   planId    String
-  plan      Plan               @relation(fields: [planId], references: [id])
+  plan      Plan     @relation(fields: [planId], references: [id])
   unitId    String
-  unit      Unit               @relation(fields: [unitId], references: [id])
-  status    SubscriptionStatus @default(ACTIVE)
-  startDate DateTime           @default(now())
+  unit      Unit     @relation(fields: [unitId], references: [id])
+  status    String   @default("ACTIVE")
+  startDate DateTime @default(now())
   endDate   DateTime?
-  createdAt DateTime           @default(now())
-  updatedAt DateTime           @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   payments Payment[]
 
@@ -180,30 +110,30 @@ model Subscription {
 // ─── STUDENTS ──────────────────────────────────────────
 
 model Student {
-  id              String   @id @default(uuid())
-  userId          String   @unique
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id              String    @id @default(uuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   unitId          String?
-  unit            Unit?    @relation(fields: [unitId], references: [id])
+  unit            Unit?     @relation(fields: [unitId], references: [id])
   trainerId       String?
-  trainer         Trainer? @relation(fields: [trainerId], references: [id])
+  trainer         Trainer?  @relation(fields: [trainerId], references: [id])
   fullName        String
-  cpf             String?  @unique
+  cpf             String?   @unique
   phone           String?
   birthDate       DateTime?
-  gender          Gender?
+  gender          String?
   avatarUrl       String?
-  weight          Decimal? @db.Decimal(5, 2)
-  height          Decimal? @db.Decimal(5, 2)
-  bodyFatPercent  Decimal? @db.Decimal(5, 2)
-  muscleMass      Decimal? @db.Decimal(5, 2)
+  weight          Float?
+  height          Float?
+  bodyFatPercent  Float?
+  muscleMass      Float?
   goal            String?
-  points          Int      @default(0)
-  level           String   @default("INICIANTE")
-  qrCode          String?  @unique
-  studentCode     String?  @unique
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  points          Int       @default(0)
+  level           String    @default("INICIANTE")
+  qrCode          String?   @unique
+  studentCode     String?   @unique
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
   checkins          CheckIn[]
   workouts          WorkoutAssignment[]
@@ -218,21 +148,21 @@ model Student {
 // ─── TRAINERS ──────────────────────────────────────────
 
 model Trainer {
-  id          String   @id @default(uuid())
-  userId      String   @unique
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id          String    @id @default(uuid())
+  userId      String    @unique
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   unitId      String?
-  unit        Unit?    @relation(fields: [unitId], references: [id])
+  unit        Unit?     @relation(fields: [unitId], references: [id])
   fullName    String
-  cpf         String?  @unique
+  cpf         String?   @unique
   cref        String?
   specialty   String?
   phone       String?
   bio         String?
   avatarUrl   String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 
   students    Student[]
   workouts    Workout[]
@@ -284,7 +214,7 @@ model WorkoutExercise {
   sets         Int      @default(3)
   reps         String
   restSeconds  Int      @default(90)
-  weight       Decimal? @db.Decimal(6, 2)
+  weight       Float?
   notes        String?
   createdAt    DateTime @default(now())
 
@@ -332,7 +262,7 @@ model ExerciseCompletion {
   completed  Boolean        @default(false)
   setsDone   Int?
   repsDone   String?
-  weightUsed Decimal?       @db.Decimal(6, 2)
+  weightUsed Float?
   notes      String?
   createdAt  DateTime       @default(now())
 }
@@ -346,13 +276,13 @@ model Evaluation {
   trainerId       String?
   trainer         Trainer? @relation(fields: [trainerId], references: [id])
   date            DateTime @default(now())
-  weight          Decimal? @db.Decimal(5, 2)
-  height          Decimal? @db.Decimal(5, 2)
-  bodyFatPercent  Decimal? @db.Decimal(5, 2)
-  muscleMass      Decimal? @db.Decimal(5, 2)
-  visceralFat     Decimal? @db.Decimal(5, 2)
+  weight          Float?
+  height          Float?
+  bodyFatPercent  Float?
+  muscleMass      Float?
+  visceralFat     Float?
   basalMetabolism Int?
-  bmi             Decimal? @db.Decimal(5, 2)
+  bmi             Float?
   observations    String?
   createdAt       DateTime @default(now())
 
@@ -363,12 +293,12 @@ model BodyMeasurement {
   id           String     @id @default(uuid())
   evaluationId String
   evaluation   Evaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
-  arm          Decimal?   @db.Decimal(5, 2)
-  chest        Decimal?   @db.Decimal(5, 2)
-  waist        Decimal?   @db.Decimal(5, 2)
-  hip          Decimal?   @db.Decimal(5, 2)
-  thigh        Decimal?   @db.Decimal(5, 2)
-  calf         Decimal?   @db.Decimal(5, 2)
+  arm          Float?
+  chest        Float?
+  waist        Float?
+  hip          Float?
+  thigh        Float?
+  calf         Float?
   createdAt    DateTime   @default(now())
 }
 
@@ -386,14 +316,14 @@ model ProgressPhoto {
 // ─── CHECK-IN ──────────────────────────────────────────
 
 model CheckIn {
-  id        String        @id @default(uuid())
+  id        String   @id @default(uuid())
   studentId String
-  student   Student       @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
   unitId    String
-  unit      Unit          @relation(fields: [unitId], references: [id])
-  date      DateTime      @default(now())
-  method    CheckInMethod @default(APP)
-  createdAt DateTime      @default(now())
+  unit      Unit     @relation(fields: [unitId], references: [id])
+  date      DateTime @default(now())
+  method    String   @default("APP")
+  createdAt DateTime @default(now())
 
   @@index([studentId, date])
   @@index([unitId, date])
@@ -402,19 +332,19 @@ model CheckIn {
 // ─── APPOINTMENTS ──────────────────────────────────────
 
 model Appointment {
-  id        String          @id @default(uuid())
+  id        String   @id @default(uuid())
   studentId String
-  student   Student         @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  student   Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
   unitId    String
-  unit      Unit            @relation(fields: [unitId], references: [id])
+  unit      Unit     @relation(fields: [unitId], references: [id])
   title     String
-  type      AppointmentType @default(PERSONAL_TRAINING)
+  type      String   @default("PERSONAL_TRAINING")
   date      DateTime
-  duration  Int             @default(60)
-  status    String          @default("SCHEDULED")
+  duration  Int      @default(60)
+  status    String   @default("SCHEDULED")
   notes     String?
-  createdAt DateTime        @default(now())
-  updatedAt DateTime        @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@index([studentId, date])
 }
@@ -422,18 +352,18 @@ model Appointment {
 // ─── PAYMENTS ──────────────────────────────────────────
 
 model Payment {
-  id             String        @id @default(uuid())
+  id             String   @id @default(uuid())
   subscriptionId String
-  subscription   Subscription  @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
-  amount         Decimal       @db.Decimal(10, 2)
-  status         PaymentStatus @default(PENDING)
-  method         PaymentMethod?
+  subscription   Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  amount         Float
+  status         String   @default("PENDING")
+  method         String?
   dueDate        DateTime
   paidDate       DateTime?
   transactionId  String?
   notes          String?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   @@index([status])
   @@index([dueDate])
@@ -442,15 +372,15 @@ model Payment {
 // ─── NOTIFICATIONS ─────────────────────────────────────
 
 model Notification {
-  id        String           @id @default(uuid())
+  id        String   @id @default(uuid())
   userId    String
-  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   title     String
   message   String
-  type      NotificationType @default(GENERAL)
-  isRead    Boolean          @default(false)
-  data      Json?
-  createdAt DateTime         @default(now())
+  type      String   @default("GENERAL")
+  isRead    Boolean  @default(false)
+  data      String?
+  createdAt DateTime @default(now())
 
   @@index([userId, isRead])
 }
@@ -458,15 +388,15 @@ model Notification {
 // ─── ACHIEVEMENTS & RANKING ────────────────────────────
 
 model Achievement {
-  id          String              @id @default(uuid())
+  id          String   @id @default(uuid())
   name        String
   description String
   icon        String
-  category    AchievementCategory @default(WORKOUT)
-  points      Int                 @default(10)
+  category    String   @default("WORKOUT")
+  points      Int      @default(10)
   requirement Int?
-  isActive    Boolean             @default(true)
-  createdAt   DateTime            @default(now())
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
 
   studentAchievements StudentAchievement[]
 }
