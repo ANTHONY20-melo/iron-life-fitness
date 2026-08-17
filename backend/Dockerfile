@@ -16,5 +16,14 @@ COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/package.json ./
 
+# Use PostgreSQL schema if DATABASE_URL is PostgreSQL, otherwise use SQLite schema
+RUN if [ -n "$DATABASE_URL" ] && echo "$DATABASE_URL" | grep -qE "^(postgresql|postgres)://"; then \
+      cp prisma/schema.postgres.prisma prisma/schema.prisma; \
+      echo "Using PostgreSQL schema"; \
+    else \
+      cp prisma/schema.prisma prisma/schema.sqlite.prisma; \
+      echo "Using SQLite schema"; \
+    fi
+
 EXPOSE 3340
-CMD ["sh", "-c", "npx prisma db push --skip-generate && node dist/server.js"]
+CMD ["sh", "-c", "if [ -n \"$DATABASE_URL\" ] && echo \"$DATABASE_URL\" | grep -qE \"^(postgresql|postgres)://\"; then cp prisma/schema.postgres.prisma prisma/schema.prisma; fi && npx prisma db push --skip-generate && node dist/server.js"]
