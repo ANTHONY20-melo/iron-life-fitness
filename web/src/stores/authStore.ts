@@ -15,10 +15,12 @@ interface AuthState {
 }
 
 interface RegisterData {
-  name: string
+  fullName: string
   email: string
-  cpf: string
-  phone: string
+  cpf?: string
+  phone?: string
+  birthDate?: string
+  gender?: string
   password: string
 }
 

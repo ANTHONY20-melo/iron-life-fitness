@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Dumbbell, Mail, Lock, User, Phone, CreditCard, Eye, EyeOff, Calendar, Male, Female } from 'lucide-react'
+import { Dumbbell, Mail, Lock, User, Phone, CreditCard, Eye, EyeOff, Calendar } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
@@ -9,7 +9,7 @@ import toast from 'react-hot-toast'
 
 export default function Register() {
   const [form, setForm] = useState({
-    fullName: '', email: '', cpf: '', phone: '', birthDate: '', gender: '', password: '', confirmPassword: '',
+    fullName: '', email: '', cpf: undefined, phone: '', birthDate: undefined, gender: undefined, password: '', confirmPassword: '',
   })
   const [showPassword, setShowPassword] = useState(false)
   const { register, isLoading } = useAuthStore()
@@ -117,7 +117,6 @@ export default function Register() {
                   { value: 'FEMALE', label: 'Feminino' },
                   { value: 'OTHER', label: 'Outro' },
                 ]}
-                icon={<Male className="w-4 h-4" />}
               />
             </div>
             <div className="relative">
