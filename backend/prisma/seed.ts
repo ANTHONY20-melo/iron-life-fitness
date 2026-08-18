@@ -136,6 +136,16 @@ function futureDate(daysAhead: number): Date {
 async function main() {
   console.log('🌱 Seeding database...')
 
+  // ─── IDEMPOTÊNCIA: pula se já existem dados ───────────
+  const existingUnit = await prisma.unit.findFirst({
+    where: { email: 'matriz@ironlifefitness.com.br' },
+  })
+  if (existingUnit) {
+    console.log('  ⏭️  Banco já populado. Seed ignorado (use prisma migrate reset para re-seed).')
+    console.log('  🔑 admin@ironlife.com / admin123 · trainer1@ironlife.com / trainer123 · student1@ironlife.com / student123')
+    return
+  }
+
   // ─── UNIT ─────────────────────────────────────────────
   const unit = await prisma.unit.create({
     data: {
