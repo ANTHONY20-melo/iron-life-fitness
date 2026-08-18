@@ -69,7 +69,7 @@ export default function App() {
       <Route
         path="/student"
         element={
-          <ProtectedRoute roles={['student']}>
+          <ProtectedRoute roles={['STUDENT']}>
             <StudentLayout />
           </ProtectedRoute>
         }
@@ -90,7 +90,7 @@ export default function App() {
       <Route
         path="/admin"
         element={
-          <ProtectedRoute roles={['admin', 'trainer']}>
+          <ProtectedRoute roles={['ADMIN', 'TRAINER']}>
             <AdminLayout />
           </ProtectedRoute>
         }

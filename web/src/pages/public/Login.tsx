@@ -23,7 +23,7 @@ export default function Login() {
       await login(email, password)
       toast.success('Bem-vindo de volta!')
       const user = useAuthStore.getState().user
-      navigate(user?.role === 'admin' || user?.role === 'trainer' ? '/admin' : '/student')
+      navigate(user?.role === 'ADMIN' || user?.role === 'TRAINER' ? '/admin' : '/student')
     } catch {
       // Error handled by interceptor
     }

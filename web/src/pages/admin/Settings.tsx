@@ -9,10 +9,10 @@ import toast from 'react-hot-toast'
 export default function Settings() {
   const [loading, setLoading] = useState(true)
   const [unitForm, setUnitForm] = useState({
-    name: 'Iron Life Fitness',
-    address: 'Rua Exemplo, 123 - Centro, São Paulo - SP',
-    phone: '(11) 99999-9999',
-    email: 'contato@ironlifefitness.com.br',
+    name: 'Academia Premium',
+    address: 'Rua das Rosas, 123 - Centro, Salvador - BA',
+    phone: '(71) 3000-1234',
+    email: 'contato@academiapremium.com.br',
     cnpj: '00.000.000/0001-00',
     openHours: 'Seg-Sex: 06h-22h | Sáb: 08h-18h | Dom: 08h-14h',
   })

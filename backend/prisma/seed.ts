@@ -144,13 +144,13 @@ async function main() {
   if (!unit) {
     unit = await prisma.unit.create({
       data: {
-        name: 'Iron Life Fitness - Matriz',
-        address: 'Rua das Rosas, 123 - Centro - São Paulo/SP',
-        phone: '(11) 3000-1234',
+        name: 'Academia Premium',
+        address: 'Rua das Rosas, 123 - Centro - Salvador/BA',
+        phone: '(71) 3000-1234',
         email: 'matriz@ironlifefitness.com.br',
       },
     })
-    console.log(`  ✅ Unit: ${unit.name}`)
+    console.log(`  ✅ Unit: ${unit.name} - Salvador/BA`)
   } else {
     console.log(`  ℹ️  Unit já existe: ${unit.name}`)
   }

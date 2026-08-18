@@ -1,7 +1,7 @@
 export interface User {
   id: string
   email: string
-  role: 'student' | 'trainer' | 'admin'
+  role: 'STUDENT' | 'TRAINER' | 'ADMIN'
   student?: Student
   trainer?: Trainer
   createdAt: string

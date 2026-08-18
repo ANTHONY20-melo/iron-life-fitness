@@ -100,7 +100,7 @@ export default function Home() {
         <div className="relative z-10 text-center px-4 max-w-5xl mx-auto">
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-full mb-8">
             <Zap className="w-4 h-4 text-primary" />
-            <span className="text-sm text-primary font-medium">Akademia Premium em São Paulo</span>
+            <span className="text-sm text-primary font-medium">Academia Premium em Salvador</span>
           </div>
 
           <h1 className="text-4xl sm:text-5xl md:text-7xl font-black text-white leading-tight mb-6">
@@ -341,21 +341,21 @@ export default function Home() {
                 <div className="p-3 bg-primary/10 rounded-xl"><MapPin className="w-5 h-5 text-primary" /></div>
                 <div>
                   <h4 className="text-sm font-semibold text-white">Endereço</h4>
-                  <p className="text-sm text-gray-500">Rua Exemplo, 123 - Centro, São Paulo - SP</p>
+                  <p className="text-sm text-gray-500">Rua das Rosas, 123 - Centro, Salvador - BA</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
                 <div className="p-3 bg-primary/10 rounded-xl"><Phone className="w-5 h-5 text-primary" /></div>
                 <div>
                   <h4 className="text-sm font-semibold text-white">Telefone</h4>
-                  <p className="text-sm text-gray-500">(11) 99999-9999</p>
+                  <p className="text-sm text-gray-500">(71) 3000-1234</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">
                 <div className="p-3 bg-primary/10 rounded-xl"><MessageCircle className="w-5 h-5 text-primary" /></div>
                 <div>
                   <h4 className="text-sm font-semibold text-white">WhatsApp</h4>
-                  <p className="text-sm text-gray-500">(11) 99999-9999</p>
+                  <p className="text-sm text-gray-500">(71) 99999-9999</p>
                 </div>
               </div>
               <div className="flex items-start gap-4">

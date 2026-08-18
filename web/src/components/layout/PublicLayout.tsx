@@ -17,7 +17,7 @@ export default function PublicLayout() {
   const location = useLocation()
   const { isAuthenticated, user } = useAuthStore()
 
-  const dashboardPath = user?.role === 'admin' || user?.role === 'trainer' ? '/admin' : '/student'
+  const dashboardPath = user?.role === 'ADMIN' || user?.role === 'TRAINER' ? '/admin' : '/student'
 
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
