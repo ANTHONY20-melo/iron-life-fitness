@@ -4,7 +4,7 @@ import prisma from '../config/database'
 import { env } from '../config/environment'
 import { UnauthorizedError, ConflictError } from '../utils/errors'
 import { AuthUser } from '../middlewares/auth'
-import { LoginInput, RegisterInput } from '../validators/auth'
+import { LoginInput, RegisterInput, RegisterAdminInput } from '../validators/auth'
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type JwtOptions = any
@@ -159,6 +159,44 @@ export class AuthService {
     return {
       accessToken,
       refreshToken: newRefreshToken,
+    }
+  }
+
+  async registerAdmin(data: RegisterAdminInput) {
+    const { secret, ...adminData } = data
+    if (secret !== env.adminRegistrationSecret) {
+      throw new UnauthorizedError('Invalid registration secret')
+    }
+
+    const exists = await prisma.user.findUnique({ where: { email: adminData.email } })
+    if (exists) throw new ConflictError('Email already registered')
+
+    const hashed = await bcrypt.hash(adminData.password, 10)
+
+    const user = await prisma.user.create({
+      data: {
+        email: adminData.email,
+        password: hashed,
+        role: 'ADMIN',
+      },
+    })
+
+    const authUser: AuthUser = { id: user.id, email: user.email, role: user.role }
+    const accessToken = generateAccessToken(authUser)
+    const refreshToken = generateRefreshToken(user.id)
+
+    await prisma.refreshToken.create({
+      data: {
+        token: refreshToken,
+        userId: user.id,
+        expiresAt: parseExpiry(env.jwtRefreshExpiresIn),
+      },
+    })
+
+    return {
+      user: { id: user.id, email: user.email, role: user.role },
+      accessToken,
+      refreshToken,
     }
   }
 

@@ -1,14 +1,15 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Dumbbell, Mail, Lock, User, Phone, CreditCard, Eye, EyeOff } from 'lucide-react'
+import { Dumbbell, Mail, Lock, User, Phone, CreditCard, Eye, EyeOff, Calendar, Male, Female } from 'lucide-react'
 import { useAuthStore } from '@/stores/authStore'
 import Button from '@/components/common/Button'
 import Input from '@/components/common/Input'
+import Select from '@/components/common/Select'
 import toast from 'react-hot-toast'
 
 export default function Register() {
   const [form, setForm] = useState({
-    name: '', email: '', cpf: '', phone: '', password: '', confirmPassword: '',
+    fullName: '', email: '', cpf: '', phone: '', birthDate: '', gender: '', password: '', confirmPassword: '',
   })
   const [showPassword, setShowPassword] = useState(false)
   const { register, isLoading } = useAuthStore()
@@ -18,8 +19,8 @@ export default function Register() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!form.name || !form.email || !form.cpf || !form.phone || !form.password) {
-      toast.error('Preencha todos os campos')
+    if (!form.fullName || !form.email || !form.phone || !form.password) {
+      toast.error('Preencha os campos obrigatórios')
       return
     }
     if (form.password !== form.confirmPassword) {
@@ -32,10 +33,12 @@ export default function Register() {
     }
     try {
       await register({
-        name: form.name,
+        fullName: form.fullName,
         email: form.email,
-        cpf: form.cpf,
+        cpf: form.cpf || undefined,
         phone: form.phone,
+        birthDate: form.birthDate || undefined,
+        gender: form.gender || undefined,
         password: form.password,
       })
       toast.success('Conta criada com sucesso!')
@@ -68,8 +71,8 @@ export default function Register() {
             <Input
               label="Nome completo"
               placeholder="Seu nome"
-              value={form.name}
-              onChange={(e) => update('name', e.target.value)}
+              value={form.fullName}
+              onChange={(e) => update('fullName', e.target.value)}
               icon={<User className="w-4 h-4" />}
             />
             <Input
@@ -82,7 +85,7 @@ export default function Register() {
             />
             <div className="grid grid-cols-2 gap-4">
               <Input
-                label="CPF"
+                label="CPF (opcional)"
                 placeholder="000.000.000-00"
                 value={form.cpf}
                 onChange={(e) => update('cpf', e.target.value)}
@@ -94,6 +97,27 @@ export default function Register() {
                 value={form.phone}
                 onChange={(e) => update('phone', e.target.value)}
                 icon={<Phone className="w-4 h-4" />}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                label="Data de nascimento (opcional)"
+                type="date"
+                value={form.birthDate}
+                onChange={(e) => update('birthDate', e.target.value)}
+                icon={<Calendar className="w-4 h-4" />}
+              />
+              <Select
+                label="Gênero (opcional)"
+                value={form.gender}
+                onChange={(e) => update('gender', e.target.value)}
+                options={[
+                  { value: '', label: 'Selecione' },
+                  { value: 'MALE', label: 'Masculino' },
+                  { value: 'FEMALE', label: 'Feminino' },
+                  { value: 'OTHER', label: 'Outro' },
+                ]}
+                icon={<Male className="w-4 h-4" />}
               />
             </div>
             <div className="relative">

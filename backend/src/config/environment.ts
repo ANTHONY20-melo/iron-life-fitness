@@ -10,4 +10,5 @@ export const env = {
   port: parseInt(process.env.PORT || '3340', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
   corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+  adminRegistrationSecret: process.env.ADMIN_REGISTRATION_SECRET || 'change-me-in-production',
 }

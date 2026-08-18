@@ -136,59 +136,88 @@ function futureDate(daysAhead: number): Date {
 async function main() {
   console.log('🌱 Seeding database...')
 
-  // ─── IDEMPOTÊNCIA: pula se já existem dados ───────────
-  const existingUnit = await prisma.unit.findFirst({
+  // ─── UNIT ─────────────────────────────────────────────
+  let unit = await prisma.unit.findFirst({
     where: { email: 'matriz@ironlifefitness.com.br' },
   })
-  if (existingUnit) {
-    console.log('  ⏭️  Banco já populado. Seed ignorado (use prisma migrate reset para re-seed).')
-    console.log('  🔑 admin@ironlife.com / admin123 · trainer1@ironlife.com / trainer123 · student1@ironlife.com / student123')
-    return
+
+  if (!unit) {
+    unit = await prisma.unit.create({
+      data: {
+        name: 'Iron Life Fitness - Matriz',
+        address: 'Rua das Rosas, 123 - Centro - São Paulo/SP',
+        phone: '(11) 3000-1234',
+        email: 'matriz@ironlifefitness.com.br',
+      },
+    })
+    console.log(`  ✅ Unit: ${unit.name}`)
+  } else {
+    console.log(`  ℹ️  Unit já existe: ${unit.name}`)
   }
 
-  // ─── UNIT ─────────────────────────────────────────────
-  const unit = await prisma.unit.create({
-    data: {
-      name: 'Iron Life Fitness - Matriz',
-      address: 'Rua das Rosas, 123 - Centro - São Paulo/SP',
-      phone: '(11) 3000-1234',
-      email: 'matriz@ironlifefitness.com.br',
-    },
-  })
-  console.log(`  ✅ Unit: ${unit.name}`)
-
   // ─── ADMIN ────────────────────────────────────────────
-  const admin = await prisma.user.create({
-    data: {
-      email: 'admin@ironlife.com',
-      password: PASSWORDS.admin,
-      role: 'ADMIN',
-    },
+  let admin = await prisma.user.findUnique({
+    where: { email: 'admin@ironlife.com' },
   })
 
-  await prisma.unitAdmin.create({
-    data: { userId: admin.id, unitId: unit.id },
-  })
-  console.log(`  ✅ Admin: ${admin.email}`)
+  if (!admin) {
+    admin = await prisma.user.create({
+      data: {
+        email: 'admin@ironlife.com',
+        password: PASSWORDS.admin,
+        role: 'ADMIN',
+      },
+    })
+
+    await prisma.unitAdmin.create({
+      data: { userId: admin.id, unitId: unit.id },
+    })
+    console.log(`  ✅ Admin: ${admin.email}`)
+  } else {
+    // Garantir que o admin tem acesso à unit
+    const existingUnitAdmin = await prisma.unitAdmin.findUnique({
+      where: { userId_unitId: { userId: admin.id, unitId: unit.id } },
+    })
+    if (!existingUnitAdmin) {
+      await prisma.unitAdmin.create({
+        data: { userId: admin.id, unitId: unit.id },
+      })
+    }
+    console.log(`  ℹ️  Admin já existe: ${admin.email}`)
+  }
 
   // ─── TRAINERS ─────────────────────────────────────────
-  const trainerUsers = await Promise.all(
-    TRAINER_NAMES.map((t, i) =>
-      prisma.user.create({
+  const trainerUsers = []
+  for (let i = 0; i < TRAINER_NAMES.length; i++) {
+    let trainerUser = await prisma.user.findUnique({
+      where: { email: `trainer${i + 1}@ironlife.com` },
+    })
+    if (!trainerUser) {
+      trainerUser = await prisma.user.create({
         data: {
           email: `trainer${i + 1}@ironlife.com`,
           password: PASSWORDS.trainer,
           role: 'TRAINER',
         },
       })
-    )
-  )
+    }
+    trainerUsers.push(trainerUser)
+  }
 
   const trainers = await Promise.all(
     trainerUsers.map((user, i) =>
-      prisma.trainer.create({
-        data: {
+      prisma.trainer.upsert({
+        where: { userId: user.id },
+        create: {
           userId: user.id,
+          unitId: unit.id,
+          fullName: TRAINER_NAMES[i].full,
+          cref: TRAINER_NAMES[i].cref,
+          specialty: TRAINER_NAMES[i].specialty,
+          phone: TRAINER_NAMES[i].phone,
+          bio: `Personal trainer especializado em ${TRAINER_NAMES[i].specialty.toLowerCase()}.`,
+        },
+        update: {
           unitId: unit.id,
           fullName: TRAINER_NAMES[i].full,
           cref: TRAINER_NAMES[i].cref,
@@ -202,25 +231,47 @@ async function main() {
   console.log(`  ✅ Trainers: ${trainers.map((t) => t.fullName).join(', ')}`)
 
   // ─── STUDENTS ─────────────────────────────────────────
-  const studentUsers = await Promise.all(
-    STUDENT_DATA.map((s, i) =>
-      prisma.user.create({
+  const studentUsers = []
+  for (let i = 0; i < STUDENT_DATA.length; i++) {
+    let studentUser = await prisma.user.findUnique({
+      where: { email: `student${i + 1}@ironlife.com` },
+    })
+    if (!studentUser) {
+      studentUser = await prisma.user.create({
         data: {
           email: `student${i + 1}@ironlife.com`,
           password: PASSWORDS.student,
           role: 'STUDENT',
         },
       })
-    )
-  )
+    }
+    studentUsers.push(studentUser)
+  }
 
   const students = await Promise.all(
     studentUsers.map((user, i) => {
       const s = STUDENT_DATA[i]
       const trainerId = trainers[i % trainers.length].id
-      return prisma.student.create({
-        data: {
+      return prisma.student.upsert({
+        where: { userId: user.id },
+        create: {
           userId: user.id,
+          unitId: unit.id,
+          trainerId,
+          fullName: s.full,
+          cpf: `${String(100 + i).padStart(3, '0')}.456.789-${String(i + 10).padStart(2, '0')}`,
+          phone: `(11) 9${String(9000 + i).padStart(4, '0')}-${String(1000 + i * 11).padStart(4, '0')}`,
+          birthDate: new Date(1990 + (i % 15), (i * 3) % 12, (i * 7) % 28 + 1),
+          gender: s.gender,
+          weight: s.weight,
+          height: s.height,
+          bodyFatPercent: 15 + (i % 15),
+          muscleMass: 30 + (i % 20),
+          goal: s.goal,
+          points: i * 50,
+          level: i < 5 ? 'INICIANTE' : i < 12 ? 'INTERMEDIARIO' : 'AVANCADO',
+        },
+        update: {
           unitId: unit.id,
           trainerId,
           fullName: s.full,

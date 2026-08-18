@@ -22,6 +22,15 @@ export class AuthController {
     }
   }
 
+  registerAdmin = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const result = await this.service.registerAdmin(req.body)
+      res.status(201).json({ success: true, data: result })
+    } catch (error) {
+      next(error)
+    }
+  }
+
   refresh = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const result = await this.service.refreshToken(req.body.token)
