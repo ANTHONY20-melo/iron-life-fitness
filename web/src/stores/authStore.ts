@@ -2,6 +2,9 @@ import { create } from 'zustand'
 import api from '@/services/api'
 import type { User } from '@/types'
 
+// Version to force clear old cached data with lowercase roles
+const STORAGE_VERSION = '2.0'
+
 interface AuthState {
   user: User | null
   token: string | null
@@ -24,6 +27,15 @@ interface RegisterData {
   password: string
 }
 
+function clearOldStorage() {
+  const storedVersion = localStorage.getItem('ironlife_version')
+  if (storedVersion !== STORAGE_VERSION) {
+    localStorage.removeItem('ironlife_token')
+    localStorage.removeItem('ironlife_user')
+    localStorage.setItem('ironlife_version', STORAGE_VERSION)
+  }
+}
+
 export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   token: null,
@@ -36,6 +48,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const { data } = await api.post('/auth/login', { email, password })
       localStorage.setItem('ironlife_token', data.token)
       localStorage.setItem('ironlife_user', JSON.stringify(data.user))
+      localStorage.setItem('ironlife_version', STORAGE_VERSION)
       set({ user: data.user, token: data.token, isAuthenticated: true, isLoading: false })
     } catch (err) {
       set({ isLoading: false })
@@ -49,6 +62,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       const { data } = await api.post('/auth/register', formData)
       localStorage.setItem('ironlife_token', data.token)
       localStorage.setItem('ironlife_user', JSON.stringify(data.user))
+      localStorage.setItem('ironlife_version', STORAGE_VERSION)
       set({ user: data.user, token: data.token, isAuthenticated: true, isLoading: false })
     } catch (err) {
       set({ isLoading: false })
@@ -63,11 +77,16 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   loadFromStorage: () => {
+    clearOldStorage()
     const token = localStorage.getItem('ironlife_token')
     const userStr = localStorage.getItem('ironlife_user')
     if (token && userStr) {
       try {
         const user = JSON.parse(userStr) as User
+        // Validate role is uppercase (new format)
+        if (user.role && !['STUDENT', 'TRAINER', 'ADMIN'].includes(user.role)) {
+          throw new Error('Old role format')
+        }
         set({ user, token, isAuthenticated: true })
       } catch {
         localStorage.removeItem('ironlife_token')
@@ -78,6 +97,7 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   updateUser: (user: User) => {
     localStorage.setItem('ironlife_user', JSON.stringify(user))
+    localStorage.setItem('ironlife_version', STORAGE_VERSION)
     set({ user })
   },
 }))
