@@ -11,7 +11,7 @@ export class NotificationService {
         title,
         message,
         type,
-        ...(data && { data: data as unknown as Record<string, string> }),
+        ...(data && { data: data as Prisma.InputJsonValue }),
       },
     })
   }

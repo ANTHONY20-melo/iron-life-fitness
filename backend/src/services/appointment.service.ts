@@ -1,7 +1,7 @@
 import prisma from '../config/database'
 import { NotFoundError } from '../utils/errors'
 import { parsePagination, paginatedResponse } from '../utils/pagination'
-import { Prisma, AppointmentType } from '@prisma/client'
+import { Prisma, AppointmentType, AppointmentStatus } from '@prisma/client'
 
 interface CreateAppointmentInput {
   studentId: string
@@ -18,7 +18,7 @@ interface UpdateAppointmentInput {
   type?: AppointmentType
   date?: string
   duration?: number
-  status?: string
+  status?: AppointmentStatus
   notes?: string
 }
 
@@ -53,7 +53,7 @@ export class AppointmentService {
     const where: Prisma.AppointmentWhereInput = {}
     if (query.studentId) where.studentId = query.studentId
     if (query.unitId) where.unitId = query.unitId
-    if (query.status) where.status = query.status
+    if (query.status) where.status = query.status as AppointmentStatus
     if (query.type) where.type = query.type as AppointmentType
 
     if (query.date) {

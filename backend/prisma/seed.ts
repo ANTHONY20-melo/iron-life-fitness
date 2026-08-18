@@ -44,21 +44,21 @@ const PLANS = [
     description: 'Acesso à musculação e esteiras',
     price: 89.90,
     duration: 30,
-    features: JSON.stringify(['Musculação', 'Esteiras', 'Vestiário', 'Água']),
+    features: ['Musculação', 'Esteiras', 'Vestiário', 'Água'],
   },
   {
     name: 'Premium',
     description: 'Acesso completo + 2 aulas por semana',
     price: 149.90,
     duration: 30,
-    features: JSON.stringify(['Musculação', 'Esteiras', 'Área funcional', '2 aulas grupais/semanais', 'Vestiário', 'Água', 'Toalha']),
+    features: ['Musculação', 'Esteiras', 'Área funcional', '2 aulas grupais/semanais', 'Vestiário', 'Água', 'Toalha'],
   },
   {
     name: 'Black',
     description: 'Acesso ilimitado + personal + avaliação',
     price: 249.90,
     duration: 30,
-    features: JSON.stringify(['Tudo do Premium', 'Acesso ilimitado aulas', '1 personal/semana', 'Avaliação física mensal', 'Sauna', 'Estacionamento', 'Nutricionista']),
+    features: ['Tudo do Premium', 'Acesso ilimitado aulas', '1 personal/semana', 'Avaliação física mensal', 'Sauna', 'Estacionamento', 'Nutricionista'],
   },
 ]
 
