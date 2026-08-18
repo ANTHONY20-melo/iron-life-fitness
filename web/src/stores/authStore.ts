@@ -27,6 +27,15 @@ interface RegisterData {
   password: string
 }
 
+interface ApiAuthResponse {
+  success: boolean
+  data: {
+    user: User
+    accessToken: string
+    refreshToken: string
+  }
+}
+
 function clearOldStorage() {
   const storedVersion = localStorage.getItem('ironlife_version')
   if (storedVersion !== STORAGE_VERSION) {
@@ -45,11 +54,12 @@ export const useAuthStore = create<AuthState>((set) => ({
   login: async (email: string, password: string) => {
     set({ isLoading: true })
     try {
-      const { data } = await api.post('/auth/login', { email, password })
-      localStorage.setItem('ironlife_token', data.token)
-      localStorage.setItem('ironlife_user', JSON.stringify(data.user))
+      const response = await api.post<ApiAuthResponse>('/auth/login', { email, password })
+      const { user, accessToken } = response.data.data
+      localStorage.setItem('ironlife_token', accessToken)
+      localStorage.setItem('ironlife_user', JSON.stringify(user))
       localStorage.setItem('ironlife_version', STORAGE_VERSION)
-      set({ user: data.user, token: data.token, isAuthenticated: true, isLoading: false })
+      set({ user, token: accessToken, isAuthenticated: true, isLoading: false })
     } catch (err) {
       set({ isLoading: false })
       throw err
@@ -59,11 +69,12 @@ export const useAuthStore = create<AuthState>((set) => ({
   register: async (formData: RegisterData) => {
     set({ isLoading: true })
     try {
-      const { data } = await api.post('/auth/register', formData)
-      localStorage.setItem('ironlife_token', data.token)
-      localStorage.setItem('ironlife_user', JSON.stringify(data.user))
+      const response = await api.post<ApiAuthResponse>('/auth/register', formData)
+      const { user, accessToken } = response.data.data
+      localStorage.setItem('ironlife_token', accessToken)
+      localStorage.setItem('ironlife_user', JSON.stringify(user))
       localStorage.setItem('ironlife_version', STORAGE_VERSION)
-      set({ user: data.user, token: data.token, isAuthenticated: true, isLoading: false })
+      set({ user, token: accessToken, isAuthenticated: true, isLoading: false })
     } catch (err) {
       set({ isLoading: false })
       throw err
