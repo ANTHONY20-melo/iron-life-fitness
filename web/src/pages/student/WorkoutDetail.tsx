@@ -8,22 +8,14 @@ import Badge from '@/components/common/Badge'
 import Skeleton from '@/components/common/Skeleton'
 import toast from 'react-hot-toast'
 import { getExerciseGifUrl } from '@/utils/exerciseGifMap'
-
-const mockExercises = [
-  { id: '1', name: 'Supino Reto', sets: 4, reps: '10-12', rest: 90, weight: 60, notes: 'Controlar a descida' },
-  { id: '2', name: 'Supino Inclinado Halteres', sets: 3, reps: '10-12', rest: 90, weight: 24, notes: '' },
-  { id: '3', name: 'Crucifixo Máquina', sets: 3, reps: '12-15', rest: 60, weight: 30, notes: '' },
-  { id: '4', name: 'Crossover', sets: 3, reps: '12-15', rest: 60, weight: 15, notes: 'Contração no final' },
-  { id: '5', name: 'Tríceps Pulley', sets: 4, reps: '10-12', rest: 60, weight: 25, notes: '' },
-  { id: '6', name: 'Tríceps Testa', sets: 3, reps: '10-12', rest: 60, weight: 20, notes: '' },
-  { id: '7', name: 'Mergulho entre Bancos', sets: 3, reps: 'Até falha', rest: 60, weight: 0, notes: '' },
-  { id: '8', name: 'Extensão Corda', sets: 3, reps: '12-15', rest: 60, weight: 15, notes: '' },
-]
+import { getWorkout } from '@/data/workoutData'
+import type { WorkoutExercise } from '@/data/workoutData'
 
 export default function WorkoutDetail() {
   const { id } = useParams()
   const [loading, setLoading] = useState(true)
-  const [exercises, setExercises] = useState(mockExercises)
+  const [workout, setWorkout] = useState<ReturnType<typeof getWorkout>>(undefined)
+  const [exercises, setExercises] = useState<WorkoutExercise[]>([])
   const [completed, setCompleted] = useState<Set<string>>(new Set())
   const [timerRunning, setTimerRunning] = useState(false)
   const [restTime, setRestTime] = useState(0)
@@ -31,9 +23,14 @@ export default function WorkoutDetail() {
   const [gifErrors, setGifErrors] = useState<Set<string>>(new Set())
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 600)
+    const timer = setTimeout(() => {
+      const found = getWorkout(id || 'a')
+      setWorkout(found || undefined)
+      setExercises(found?.exercises || [])
+      setLoading(false)
+    }, 400)
     return () => clearTimeout(timer)
-  }, [])
+  }, [id])
 
   useEffect(() => {
     if (!timerRunning || restTime <= 0) return
@@ -89,18 +86,41 @@ export default function WorkoutDetail() {
     )
   }
 
+  if (!workout) {
+    return (
+      <div className="space-y-4 animate-fadeIn">
+        <Link to="/student/workouts" className="p-2 text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-[#1a1a1a] inline-flex">
+          <ArrowLeft className="w-5 h-5" />
+        </Link>
+        <Card className="text-center py-12">
+          <Dumbbell className="w-12 h-12 text-gray-600 mx-auto mb-3" />
+          <h2 className="text-lg font-bold text-white">Treino não encontrado</h2>
+          <p className="text-sm text-gray-500 mt-1">Este treino não existe ou foi removido.</p>
+          <Link to="/student/workouts">
+            <Button className="mt-4" variant="outline">Voltar para Treinos</Button>
+          </Link>
+        </Card>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6 animate-fadeIn max-w-3xl">
+      {/* Header */}
       <div className="flex items-center gap-3">
         <Link to="/student/workouts" className="p-2 text-gray-400 hover:text-white transition-colors rounded-lg hover:bg-[#1a1a1a]">
           <ArrowLeft className="w-5 h-5" />
         </Link>
-        <div>
-          <h1 className="text-2xl font-bold text-white">Treino A - Peito e Tríceps</h1>
-          <p className="text-sm text-gray-500">8 exercícios • Prof. Rafael Costa</p>
+        <div className="flex-1">
+          <div className="flex items-center gap-2">
+            <span className="text-2xl">{workout.icon}</span>
+            <h1 className="text-2xl font-bold text-white">{workout.name}</h1>
+          </div>
+          <p className="text-sm text-gray-500 mt-0.5">{exercises.length} exercícios • {workout.day} • Prof. Rafael Costa</p>
         </div>
       </div>
 
+      {/* Progress */}
       <ProgressBar value={completed.size} max={exercises.length} label="Progresso" />
 
       {/* Rest timer */}
@@ -237,11 +257,12 @@ export default function WorkoutDetail() {
         })}
       </div>
 
+      {/* Completion */}
       {pct === 100 && (
         <Card className="border-emerald-500/30 text-center">
           <div className="text-4xl mb-2">🎉</div>
           <h3 className="text-lg font-bold text-white">Treino Concluído!</h3>
-          <p className="text-sm text-gray-500 mt-1">Parabéns! Você completou todos os exercícios.</p>
+          <p className="text-sm text-gray-500 mt-1">Parabéns! Você completou todos os {exercises.length} exercícios.</p>
           <Link to="/student/history">
             <Button className="mt-4" variant="outline">Ver Histórico</Button>
           </Link>

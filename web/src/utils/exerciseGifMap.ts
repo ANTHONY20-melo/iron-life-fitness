@@ -52,8 +52,9 @@ const EXERCISE_ID_MAP: Record<string, string> = {
   'remada': 'upper-back/barbell-bent-over-row',
   'bent over row': 'upper-back/barbell-bent-over-row',
   'barbell row': 'upper-back/barbell-bent-over-row',
-  'remada-cable': 'upper-back/seated-cable-row',
-  'seated cable row': 'upper-back/seated-cable-row',
+  'remada-cable': 'upper-back/cable-seated-row',
+  'remada cable': 'upper-back/cable-seated-row',
+  'seated cable row': 'upper-back/cable-seated-row',
 
   // ── Pernas — Quadríceps ──
   'agachamento-livre': 'glutes/barbell-high-bar-squat',
@@ -80,6 +81,8 @@ const EXERCISE_ID_MAP: Record<string, string> = {
   'elevacao-de-panturrilha': 'calves/barbell-standing-calf-raise',
   'elevação de panturrilha': 'calves/barbell-standing-calf-raise',
   'panturrilha': 'calves/barbell-standing-calf-raise',
+  'panturrilha no leg press': 'calves/lever-seated-calf-raise',
+  'leg press panturrilha': 'calves/lever-seated-calf-raise',
 
   // ── Ombros ──
   'desenvolvimento': 'delts/dumbbell-seated-shoulder-press',
@@ -89,14 +92,17 @@ const EXERCISE_ID_MAP: Record<string, string> = {
   'elevacao-lateral': 'delts/dumbbell-lateral-raise',
   'elevação lateral': 'delts/dumbbell-lateral-raise',
   'lateral raise': 'delts/dumbbell-lateral-raise',
-  'face pull': 'delts/cable-face-pull',
+  'elevação frontal': 'delts/dumbbell-front-raise',
+  'front raise': 'delts/dumbbell-front-raise',
+  'face pull': 'delts/cable-standing-rear-delt-row-with-rope',
+  'rear delt': 'delts/cable-standing-rear-delt-row-with-rope',
 
   // ── Bíceps ──
   'rosca-direta': 'biceps/barbell-curl',
   'rosca direta': 'biceps/barbell-curl',
   'barbell curl': 'biceps/barbell-curl',
-  'rosca alternada': 'biceps/alternating-dumbbell-curl',
-  'dumbbell curl': 'biceps/alternating-dumbbell-curl',
+  'rosca alternada': 'biceps/dumbbell-standing-biceps-curl',
+  'dumbbell curl': 'biceps/dumbbell-standing-biceps-curl',
   'rosca martelo': 'biceps/dumbbell-hammer-curl',
   'hammer curl': 'biceps/dumbbell-hammer-curl',
 
