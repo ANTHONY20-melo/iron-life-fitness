@@ -1,12 +1,13 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import { ArrowLeft, Play, Pause, RotateCcw, Plus, Minus, Check, Dumbbell } from 'lucide-react'
+import { ArrowLeft, Play, Pause, RotateCcw, Plus, Minus, Check, Dumbbell, ChevronDown, ChevronUp, Eye } from 'lucide-react'
 import Card from '@/components/common/Card'
 import Button from '@/components/common/Button'
 import ProgressBar from '@/components/common/ProgressBar'
 import Badge from '@/components/common/Badge'
 import Skeleton from '@/components/common/Skeleton'
 import toast from 'react-hot-toast'
+import { getExerciseGifUrl } from '@/utils/exerciseGifMap'
 
 const mockExercises = [
   { id: '1', name: 'Supino Reto', sets: 4, reps: '10-12', rest: 90, weight: 60, notes: 'Controlar a descida' },
@@ -26,7 +27,8 @@ export default function WorkoutDetail() {
   const [completed, setCompleted] = useState<Set<string>>(new Set())
   const [timerRunning, setTimerRunning] = useState(false)
   const [restTime, setRestTime] = useState(0)
-  const [restTarget, setRestTarget] = useState(90)
+  const [expandedId, setExpandedId] = useState<string | null>(null)
+  const [gifErrors, setGifErrors] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 600)
@@ -49,22 +51,29 @@ export default function WorkoutDetail() {
   }, [timerRunning, restTime])
 
   const startRest = useCallback((seconds: number) => {
-    setRestTarget(seconds)
     setRestTime(seconds)
     setTimerRunning(true)
   }, [])
 
-  const toggleExercise = (id: string) => {
+  const toggleExercise = (exerciseId: string) => {
     setCompleted((prev) => {
       const next = new Set(prev)
-      if (next.has(id)) next.delete(id)
+      if (next.has(exerciseId)) next.delete(exerciseId)
       else {
-        next.add(id)
-        const exercise = exercises.find((e) => e.id === id)
+        next.add(exerciseId)
+        const exercise = exercises.find((e) => e.id === exerciseId)
         if (exercise?.rest) startRest(exercise.rest)
       }
       return next
     })
+  }
+
+  const toggleExpand = (exerciseId: string) => {
+    setExpandedId((prev) => (prev === exerciseId ? null : exerciseId))
+  }
+
+  const handleGifError = (exerciseId: string) => {
+    setGifErrors((prev) => new Set(prev).add(exerciseId))
   }
 
   const formatTime = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`
@@ -119,12 +128,20 @@ export default function WorkoutDetail() {
       <div className="space-y-3">
         {exercises.map((ex, i) => {
           const done = completed.has(ex.id)
+          const expanded = expandedId === ex.id
+          const gifUrl = getExerciseGifUrl(ex.name)
+          const gifFailed = gifErrors.has(ex.id)
+
           return (
             <Card
               key={ex.id}
               className={`transition-all duration-300 ${done ? 'border-emerald-500/30 bg-emerald-500/5' : ''}`}
             >
-              <div className="flex items-center justify-between">
+              {/* Exercise header — click to expand/collapse */}
+              <div
+                className="flex items-center justify-between cursor-pointer select-none"
+                onClick={() => toggleExpand(ex.id)}
+              >
                 <div className="flex items-center gap-4">
                   <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-sm font-bold ${
                     done ? 'bg-emerald-500 text-white' : 'bg-[#1a1a1a] text-gray-500'
@@ -138,17 +155,83 @@ export default function WorkoutDetail() {
                       {ex.weight > 0 && <span className="text-xs text-gray-600">{ex.weight}kg</span>}
                       <span className="text-xs text-gray-600">Descanso: {ex.rest}s</span>
                     </div>
-                    {ex.notes && <p className="text-xs text-gray-600 mt-0.5 italic">{ex.notes}</p>}
                   </div>
                 </div>
-                <Button
-                  size="sm"
-                  variant={done ? 'secondary' : 'primary'}
-                  onClick={() => toggleExercise(ex.id)}
-                >
-                  {done ? 'Desfazer' : 'Concluir'}
-                </Button>
+                <div className="flex items-center gap-2">
+                  {expanded
+                    ? <ChevronUp className="w-4 h-4 text-gray-500" />
+                    : <ChevronDown className="w-4 h-4 text-gray-500" />
+                  }
+                </div>
               </div>
+
+              {/* Expanded area — GIF demo + notes + treinar button */}
+              {expanded && (
+                <div className="mt-4 space-y-3 animate-fadeIn">
+                  {/* GIF area */}
+                  {gifUrl && !gifFailed ? (
+                    <div className="relative rounded-xl overflow-hidden bg-[#0a0a0a] aspect-video">
+                      <img
+                        src={gifUrl}
+                        alt={`${ex.name} - demonstração`}
+                        className="w-full h-full object-contain"
+                        onError={() => handleGifError(ex.id)}
+                        loading="lazy"
+                      />
+                      <div className="absolute top-2 left-2">
+                        <Badge variant="default" className="bg-black/60 backdrop-blur-sm text-[10px]">
+                          <Eye className="w-3 h-3 mr-1" /> Demonstração
+                        </Badge>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="rounded-xl bg-[#0a0a0a] aspect-video flex items-center justify-center">
+                      <div className="text-center p-4">
+                        <Dumbbell className="w-12 h-12 text-gray-700 mx-auto mb-2" />
+                        <p className="text-sm text-gray-500">Demonstração indisponível</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Notes */}
+                  {ex.notes && (
+                    <p className="text-xs text-gray-400 italic bg-[#1a1a1a] rounded-lg px-3 py-2">
+                      💡 {ex.notes}
+                    </p>
+                  )}
+
+                  {/* Treinar button */}
+                  <div className="flex justify-center">
+                    <Button
+                      size="md"
+                      variant={done ? 'secondary' : 'primary'}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        toggleExercise(ex.id)
+                      }}
+                      icon={done ? <Check className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                    >
+                      {done ? 'Desfazer' : 'Treinar'}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Quick Treinar button when collapsed */}
+              {!expanded && (
+                <div className="flex justify-end mt-2 pt-2 border-t border-[#2a2a2a]">
+                  <Button
+                    size="sm"
+                    variant={done ? 'secondary' : 'primary'}
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      toggleExercise(ex.id)
+                    }}
+                  >
+                    {done ? 'Desfazer' : 'Treinar'}
+                  </Button>
+                </div>
+              )}
             </Card>
           )
         })}
