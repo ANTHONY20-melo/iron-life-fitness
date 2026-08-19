@@ -2,92 +2,132 @@
  * Mapeamento de nomes de exercícios (PT-BR) para IDs do CDN ExerciseGymGifsDB.
  * CDN: https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0
  *
- * O lookup é feito por match parcial normalizado (lowercase, sem acentos, sem pontuação).
+ * IDs verificados contra a API real (1323 exercícios).
+ * Lookup por match parcial normalizado (lowercase, sem acentos, sem pontuação).
  */
 
 const CDN_BASE = 'https://cdn.jsdelivr.net/gh/JahelCuadrado/ExerciseGymGifsDB@v1.1.0'
 
 /** Tabela de mapeamento: slug do exercício → ID completo do CDN */
 const EXERCISE_ID_MAP: Record<string, string> = {
-  // Peito
+  // ── Peito ──
   'supino-reto': 'pectorals/barbell-bench-press',
   'supino reto': 'pectorals/barbell-bench-press',
   'bench press': 'pectorals/barbell-bench-press',
-  'supino-inclinado-halteres': 'pectorals/incline-dumbbell-press',
-  'supino inclinado halteres': 'pectorals/incline-dumbbell-press',
-  'incline dumbbell press': 'pectorals/incline-dumbbell-press',
-  'supino inclinado': 'pectorals/incline-barbell-bench-press',
-  'crucifixo-maquina': 'pectorals/lever-pec-deck-fly',
-  'crucifixo maquina': 'pectorals/lever-pec-deck-fly',
-  'pec deck': 'pectorals/lever-pec-deck-fly',
-  'crossover': 'pectorals/cable-crossover',
-  'supino-declinado': 'pectorals/decline-bench-press',
+  'barbell bench press': 'pectorals/barbell-bench-press',
+  'supino-inclinado-halteres': 'pectorals/dumbbell-incline-bench-press',
+  'supino inclinado halteres': 'pectorals/dumbbell-incline-bench-press',
+  'supino inclinado': 'pectorals/dumbbell-incline-bench-press',
+  'incline dumbbell press': 'pectorals/dumbbell-incline-bench-press',
   'supino com halteres': 'pectorals/dumbbell-bench-press',
+  'dumbbell bench press': 'pectorals/dumbbell-bench-press',
+  'crucifixo-maquina': 'pectorals/lever-seated-fly',
+  'crucifixo maquina': 'pectorals/lever-seated-fly',
+  'crucifixo': 'pectorals/lever-seated-fly',
+  'pec deck': 'pectorals/lever-seated-fly',
+  'peck deck': 'pectorals/lever-seated-fly',
+  'fly': 'pectorals/lever-seated-fly',
+  'crossover': 'pectorals/cable-standing-up-straight-crossovers',
+  'cable crossover': 'pectorals/cable-standing-up-straight-crossovers',
+  'supino-declinado': 'pectorals/decline-bench-press',
+  'decline bench press': 'pectorals/decline-bench-press',
   'flexao': 'pectorals/push-up',
   'flexão': 'pectorals/push-up',
+  'push up': 'pectorals/push-up',
+  'push-up': 'pectorals/push-up',
 
-  // Costas
-  'puxada-frontal': 'lats/pull-up',
-  'puxada frontal': 'lats/pull-up',
-  'pull up': 'lats/pull-up',
-  'pull-up': 'lats/pull-up',
-  'remada-curvada': 'lats/bent-over-barbell-row',
-  'remada curvada': 'lats/bent-over-barbell-row',
-  'remada': 'lats/seated-cable-row',
-  'pull down': 'lats/lever-pulldown',
-  'puxada': 'lats/lever-pulldown',
+  // ── Costas ──
+  'puxada-frontal': 'lats/cable-pulldown',
+  'puxada frontal': 'lats/cable-pulldown',
+  'puxada': 'lats/cable-pulldown',
+  'pulldown': 'lats/cable-pulldown',
+  'pull down': 'lats/cable-pulldown',
+  'lat pulldown': 'lats/cable-pulldown',
   'barra-fixa': 'lats/pull-up',
   'barra fixa': 'lats/pull-up',
+  'pull up': 'lats/pull-up',
+  'pull-up': 'lats/pull-up',
+  'remada-curvada': 'upper-back/barbell-bent-over-row',
+  'remada curvada': 'upper-back/barbell-bent-over-row',
+  'remada': 'upper-back/barbell-bent-over-row',
+  'bent over row': 'upper-back/barbell-bent-over-row',
+  'barbell row': 'upper-back/barbell-bent-over-row',
+  'remada-cable': 'upper-back/seated-cable-row',
+  'seated cable row': 'upper-back/seated-cable-row',
 
-  // Pernas
-  'agachamento-livre': 'quads/barbell-squat',
-  'agachamento livre': 'quads/barbell-squat',
-  'squat': 'quads/barbell-squat',
-  'leg press': 'quads/lever-leg-press',
-  'cadeira-extensora': 'quads/lever-knee-extension',
-  'cadeira extensora': 'quads/lever-knee-extension',
-  'leg curl': 'hamstrings/lying-leg-curl',
-  'stiff': 'hamstrings/romanian-deadlift',
-  'agachamento': 'quads/barbell-squat',
-  'calf raise': 'calves/standing-calf-raise',
-  'elevacao-de-panturrilha': 'calves/standing-calf-raise',
-  'elevação de panturrilha': 'calves/standing-calf-raise',
+  // ── Pernas — Quadríceps ──
+  'agachamento-livre': 'glutes/barbell-high-bar-squat',
+  'agachamento livre': 'glutes/barbell-high-bar-squat',
+  'agachamento': 'glutes/barbell-high-bar-squat',
+  'squat': 'glutes/barbell-high-bar-squat',
+  'barbell squat': 'glutes/barbell-high-bar-squat',
+  'leg press': 'glutes/sled-45-leg-press',
+  'cadeira-extensora': 'quads/lever-leg-extension',
+  'cadeira extensora': 'quads/lever-leg-extension',
+  'leg extension': 'quads/lever-leg-extension',
+  'extensora': 'quads/lever-leg-extension',
 
-  // Ombros
-  'desenvolvimento': 'delts/seated-dumbbell-press',
-  'desenvolvimento militar': 'delts/military-press',
+  // ── Pernas — Posteriores ──
+  'leg-curl': 'hamstrings/lever-lying-leg-curl',
+  'leg curl': 'hamstrings/lever-lying-leg-curl',
+  'stiff': 'glutes/barbell-romanian-deadlift',
+  'romanian deadlift': 'glutes/barbell-romanian-deadlift',
+  'deadlift': 'glutes/barbell-romanian-deadlift',
+
+  // ── Panturrilha ──
+  'calf-raise': 'calves/barbell-standing-calf-raise',
+  'calf raise': 'calves/barbell-standing-calf-raise',
+  'elevacao-de-panturrilha': 'calves/barbell-standing-calf-raise',
+  'elevação de panturrilha': 'calves/barbell-standing-calf-raise',
+  'panturrilha': 'calves/barbell-standing-calf-raise',
+
+  // ── Ombros ──
+  'desenvolvimento': 'delts/dumbbell-seated-shoulder-press',
+  'desenvolvimento militar': 'delts/dumbbell-seated-shoulder-press',
+  'shoulder press': 'delts/dumbbell-seated-shoulder-press',
+  'military press': 'delts/dumbbell-seated-shoulder-press',
   'elevacao-lateral': 'delts/dumbbell-lateral-raise',
   'elevação lateral': 'delts/dumbbell-lateral-raise',
   'lateral raise': 'delts/dumbbell-lateral-raise',
   'face pull': 'delts/cable-face-pull',
 
-  // Bíceps
+  // ── Bíceps ──
   'rosca-direta': 'biceps/barbell-curl',
   'rosca direta': 'biceps/barbell-curl',
   'barbell curl': 'biceps/barbell-curl',
   'rosca alternada': 'biceps/alternating-dumbbell-curl',
-  'rosca martelo': 'biceps/hammer-curl',
+  'dumbbell curl': 'biceps/alternating-dumbbell-curl',
+  'rosca martelo': 'biceps/dumbbell-hammer-curl',
+  'hammer curl': 'biceps/dumbbell-hammer-curl',
 
-  // Tríceps
-  'triceps-pulley': 'triceps/triceps-pushdown',
-  'tríceps pulley': 'triceps/triceps-pushdown',
-  'triceps pulley': 'triceps/triceps-pushdown',
-  'triceps-testa': 'triceps/barbell-skull-crusher',
-  'tríceps testa': 'triceps/barbell-skull-crusher',
-  'triceps testa': 'triceps/barbell-skull-crusher',
-  'mergulho-entre-bancos': 'triceps/bench-dip',
-  'mergulho entre bancos': 'triceps/bench-dip',
-  'mergulho': 'triceps/bench-dip',
-  'extensao-corda': 'triceps/cable-rope-tricep-extension',
-  'extensão corda': 'triceps/cable-rope-tricep-extension',
-  'extensao corda': 'triceps/cable-rope-tricep-extension',
-  'skull crusher': 'triceps/barbell-skull-crusher',
-  'dips': 'triceps/bench-dip',
+  // ── Tríceps ──
+  'triceps-pulley': 'triceps/cable-pushdown',
+  'tríceps pulley': 'triceps/cable-pushdown',
+  'triceps pulley': 'triceps/cable-pushdown',
+  'triceps pushdown': 'triceps/cable-pushdown',
+  'pushdown': 'triceps/cable-pushdown',
+  'triceps-testa': 'triceps/barbell-lying-triceps-extension-skull-crusher',
+  'tríceps testa': 'triceps/barbell-lying-triceps-extension-skull-crusher',
+  'triceps testa': 'triceps/barbell-lying-triceps-extension-skull-crusher',
+  'skull crusher': 'triceps/barbell-lying-triceps-extension-skull-crusher',
+  'mergulho-entre-bancos': 'triceps/triceps-dip-between-benches',
+  'mergulho entre bancos': 'triceps/triceps-dip-between-benches',
+  'mergulho': 'triceps/triceps-dip-between-benches',
+  'dips': 'triceps/triceps-dip-between-benches',
+  'bench dip': 'triceps/triceps-dip-between-benches',
+  'extensao-corda': 'triceps/cable-pushdown-with-rope-attachment',
+  'extensão corda': 'triceps/cable-pushdown-with-rope-attachment',
+  'extensao corda': 'triceps/cable-pushdown-with-rope-attachment',
+  'rope pushdown': 'triceps/cable-pushdown-with-rope-attachment',
+  'tricep rope': 'triceps/cable-pushdown-with-rope-attachment',
 
-  // Abdômen
-  'prancha': 'abs/plank',
-  'abdominal': 'abs/3-4-sit-up',
-  'crunch': 'abs/crunch',
+  // ── Abdômen ──
+  'prancha': 'abs/weighted-front-plank',
+  'plank': 'abs/weighted-front-plank',
+  'abdominal': 'abs/sit-up-v-2',
+  'crunch': 'abs/crunch-floor',
+  'sit up': 'abs/sit-up-v-2',
+  'sit-up': 'abs/sit-up-v-2',
 }
 
 /**
