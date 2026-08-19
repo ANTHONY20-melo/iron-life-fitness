@@ -84,10 +84,10 @@ export default function StudentLayout() {
         {/* User */}
         <div className="p-4 border-t border-[#1a1a1a]">
           <div className="flex items-center gap-3">
-            <Avatar name={user?.student?.name || user?.email || 'U'} size="sm" />
+            <Avatar name={user?.student?.fullName || user?.email || 'U'} size="sm" />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-medium text-white truncate">
-                {user?.student?.name || 'Aluno'}
+                {user?.student?.fullName || 'Aluno'}
               </p>
               <p className="text-xs text-gray-500 truncate">{user?.email}</p>
             </div>
@@ -114,9 +114,9 @@ export default function StudentLayout() {
             <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full" />
           </button>
           <div className="flex items-center gap-2">
-            <Avatar name={user?.student?.name || user?.email || 'U'} size="sm" />
+            <Avatar name={user?.student?.fullName || user?.email || 'U'} size="sm" />
             <span className="text-sm text-white hidden sm:block">
-              {user?.student?.name || 'Aluno'}
+              {user?.student?.fullName || 'Aluno'}
             </span>
           </div>
         </header>

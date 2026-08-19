@@ -68,8 +68,22 @@ export class AuthService {
       },
     })
 
+    // Include student data so frontend can show name instead of email
+    let student = null
+    if (user.role === 'STUDENT') {
+      student = await prisma.student.findUnique({
+        where: { userId: user.id },
+        select: {
+          id: true, userId: true, fullName: true, cpf: true, phone: true,
+          birthDate: true, gender: true, avatarUrl: true, weight: true,
+          height: true, bodyFatPercent: true, muscleMass: true, goal: true,
+          points: true, level: true, studentCode: true,
+        },
+      })
+    }
+
     return {
-      user: { id: user.id, email: user.email, role: user.role },
+      user: { id: user.id, email: user.email, role: user.role, student },
       accessToken,
       refreshToken,
     }
@@ -117,8 +131,17 @@ export class AuthService {
     })
 
     return {
-      user: { id: result.user.id, email: result.user.email, role: result.user.role },
-      student: result.student,
+      user: {
+        id: result.user.id, email: result.user.email, role: result.user.role,
+        student: {
+          id: result.student.id, userId: result.student.userId,
+          fullName: result.student.fullName, cpf: result.student.cpf,
+          phone: result.student.phone, birthDate: result.student.birthDate,
+          gender: result.student.gender, points: result.student.points,
+          level: result.student.level, weight: result.student.weight,
+          height: result.student.height, goal: result.student.goal,
+        },
+      },
       accessToken,
       refreshToken,
     }

@@ -209,6 +209,22 @@ model Student {
   subscriptions     Subscription[]
   achievements      StudentAchievement[]
   ranking           Ranking?
+  medicalExams      MedicalExam[]
+}
+
+model MedicalExam {
+  id          String   @id @default(uuid())
+  studentId   String
+  student     Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  name        String
+  fileName    String
+  fileBase64  String
+  mimeType    String
+  fileSize    Int
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  @@index([studentId])
 }
 
 // ─── TRAINERS ──────────────────────────────────────────

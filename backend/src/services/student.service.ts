@@ -198,4 +198,120 @@ export class StudentService {
       },
     })
   }
+
+  // ─── Student self-update profile ──────────────────────
+
+  async updateMyProfile(userId: string, data: { name?: string; phone?: string; weight?: number; height?: number; goal?: string }) {
+    const student = await prisma.student.findUnique({ where: { userId } })
+    if (!student) throw new NotFoundError('Student profile')
+
+    return prisma.student.update({
+      where: { id: student.id },
+      data: {
+        ...(data.name !== undefined && { fullName: data.name }),
+        ...(data.phone !== undefined && { phone: data.phone }),
+        ...(data.weight !== undefined && { weight: data.weight }),
+        ...(data.height !== undefined && { height: data.height }),
+        ...(data.goal !== undefined && { goal: data.goal }),
+      },
+      include: {
+        user: { select: { id: true, email: true, role: true } },
+      },
+    })
+  }
+
+  async updateMyBodyStats(userId: string, data: UpdateBodyStatsInput) {
+    const student = await prisma.student.findUnique({ where: { userId } })
+    if (!student) throw new NotFoundError('Student profile')
+
+    return prisma.student.update({
+      where: { id: student.id },
+      data: {
+        ...(data.weight !== undefined && { weight: data.weight }),
+        ...(data.height !== undefined && { height: data.height }),
+        ...(data.bodyFatPercent !== undefined && { bodyFatPercent: data.bodyFatPercent }),
+        ...(data.muscleMass !== undefined && { muscleMass: data.muscleMass }),
+      },
+    })
+  }
+
+  // ─── Medical exams ───────────────────────────────────
+
+  async getMyExams(userId: string) {
+    const student = await prisma.student.findUnique({ where: { userId } })
+    if (!student) throw new NotFoundError('Student profile')
+
+    const exams = await prisma.medicalExam.findMany({
+      where: { studentId: student.id },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true, name: true, fileName: true, mimeType: true,
+        fileSize: true, notes: true, createdAt: true,
+        // Don't return fileBase64 in list for performance
+      },
+    })
+
+    return exams
+  }
+
+  async getMyExamById(userId: string, examId: string) {
+    const student = await prisma.student.findUnique({ where: { userId } })
+    if (!student) throw new NotFoundError('Student profile')
+
+    const exam = await prisma.medicalExam.findFirst({
+      where: { id: examId, studentId: student.id },
+    })
+    if (!exam) throw new NotFoundError('Exam')
+
+    return exam
+  }
+
+  async uploadMyExam(userId: string, data: { name: string; fileName: string; fileBase64: string; mimeType: string; fileSize: number; notes?: string }) {
+    const student = await prisma.student.findUnique({ where: { userId } })
+    if (!student) throw new NotFoundError('Student profile')
+
+    // Validate file size (max 10MB)
+    if (data.fileSize > 10 * 1024 * 1024) {
+      throw new AppError('File too large. Maximum size is 10MB.', 413)
+    }
+
+    // Validate mime type
+    const allowedTypes = [
+      'application/pdf',
+      'image/jpeg', 'image/png', 'image/webp',
+      'application/dicom', 'text/plain',
+    ]
+    if (!allowedTypes.includes(data.mimeType)) {
+      throw new AppError('File type not allowed. Accepted: PDF, JPEG, PNG, WebP.', 415)
+    }
+
+    return prisma.medicalExam.create({
+      data: {
+        studentId: student.id,
+        name: data.name,
+        fileName: data.fileName,
+        fileBase64: data.fileBase64,
+        mimeType: data.mimeType,
+        fileSize: data.fileSize,
+        notes: data.notes || null,
+      },
+      select: {
+        id: true, name: true, fileName: true, mimeType: true,
+        fileSize: true, notes: true, createdAt: true,
+      },
+    })
+  }
+
+  async deleteMyExam(userId: string, examId: string) {
+    const student = await prisma.student.findUnique({ where: { userId } })
+    if (!student) throw new NotFoundError('Student profile')
+
+    const exam = await prisma.medicalExam.findFirst({
+      where: { id: examId, studentId: student.id },
+    })
+    if (!exam) throw new NotFoundError('Exam')
+
+    await prisma.medicalExam.delete({ where: { id: examId } })
+    return { message: 'Exam deleted successfully' }
+  }
 }

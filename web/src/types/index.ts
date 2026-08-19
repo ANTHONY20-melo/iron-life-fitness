@@ -10,18 +10,28 @@ export interface User {
 export interface Student {
   id: string
   userId: string
-  name: string
+  fullName: string
   cpf: string
   phone: string
   photo?: string
+  avatarUrl?: string
   birthDate?: string
   gender?: string
   planId?: string
   plan?: Plan
   status: 'active' | 'inactive' | 'overdue'
   points: number
-  level: number
+  level: string
   joinDate: string
+  // Body stats
+  weight?: number
+  height?: number
+  bodyFatPercent?: number
+  muscleMass?: number
+  goal?: string
+  // Codes
+  studentCode?: string
+  qrCode?: string
 }
 
 export interface Trainer {
@@ -168,6 +178,18 @@ export interface Achievement {
   points: number
   unlocked: boolean
   unlockedAt?: string
+}
+
+export interface MedicalExam {
+  id: string
+  name: string
+  fileName: string
+  mimeType: string
+  fileSize: number
+  notes?: string
+  createdAt: string
+  // fileBase64 only included when fetching single exam
+  fileBase64?: string
 }
 
 export interface DashboardStats {

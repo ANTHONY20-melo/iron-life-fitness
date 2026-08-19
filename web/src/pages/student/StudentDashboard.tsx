@@ -41,7 +41,7 @@ export default function StudentDashboard() {
     return () => clearTimeout(timer)
   }, [])
 
-  const name = user?.student?.name || user?.email?.split('@')[0] || 'Aluno'
+  const name = user?.student?.fullName || user?.email?.split('@')[0] || 'Aluno'
 
   if (loading) {
     return (
